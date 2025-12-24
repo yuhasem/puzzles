@@ -1,0 +1,88 @@
+#left {
+	float: left;
+}
+#right {
+	display: flex;
+	flex-direction: column;
+}
+#rules {
+	background-color: aliceblue;
+	border-radius: 8px;
+	border-style: solid;
+	border-width: 2px;
+	border-color: blue;
+	padding: 5px;
+	display: flex;
+	flex-direction: column;
+}
+#message {
+	background-color: aliceblue;
+	border-radius: 8px;
+	border-style: solid;
+	border-width: 2px;
+	border-color: blue;
+	padding: 5px;
+}
+#instructions {
+	background-color: #EEEEEE;
+	border-radius: 8px;
+	border: 2px solid black;
+	padding: 5px;
+	margin-top: 5px;
+}
+h2 {
+	font: center;
+}
+.controls {
+	padding: 5px;
+}
+.tab-click {
+	display: none;
+}
+.tab-name {
+	background-color: #EEEEEE;
+	border: 2px solid #BBBBBB;
+	border-bottom: none;
+	padding: 5px;
+	margin-top: 5px;
+	display:block;
+	float:left;
+}
+.tab-click:checked + .tab-name {
+	background-color: #DDDDDD;
+}
+.tab-space {
+	background-color: #DDDDDD;
+	border: 2px solid #BBBBBB;
+	padding: 5px;
+	clear: left;
+}
+#next {
+	margin: 5px;
+	height: 50px;
+}
+
+button {
+	border: 2px solid black;
+	border-radius: 8px;
+	background-color: #EEEEEE;
+	height: 30px;
+	padding: 5px;
+	margin: 5px;
+}
+
+.sudoku-control {
+	height: 50px;
+}
+.sudoku-remove {
+	display: block;
+}
+.sudoku-digit {
+	height: 40px;
+	width: 40px;
+	display: block;
+	margin: 0;
+}
+.sudoku-float {
+	float: left;
+}
