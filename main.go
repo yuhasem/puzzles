@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log/slog"
 	"net"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+var host = flag.String("host", "localhost", "ip address to bind on")
 
 func main() {
 	// Set up loggers.
@@ -30,7 +33,7 @@ func main() {
 	monServer := http.Server{
 		Handler: &monMux,
 	}
-	monL, err := net.Listen("tcp", "127.0.0.1:2113")
+	monL, err := net.Listen("tcp", fmt.Sprintf("%s:2113", *host))
 	if err != nil {
 		slog.Error(fmt.Sprintf("setting up monitoring port: %s", err))
 	}
@@ -40,7 +43,7 @@ func main() {
 
 	// Set up main server.
 	server := http.Server{}
-	l, err := net.Listen("tcp", "127.0.0.1:3722")
+	l, err := net.Listen("tcp", fmt.Sprintf("%s:3722", *host))
 	if err != nil {
 		slog.Error(fmt.Sprintf("setting up main port: %s", err))
 		return
