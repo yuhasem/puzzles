@@ -17,6 +17,7 @@ import (
 var host = flag.String("host", "localhost", "ip address to bind on")
 
 func main() {
+	flag.Parse()
 	// Set up loggers.
 	nowStr := time.Now().Format("060102_150405")
 	logFile, err := os.Create(fmt.Sprintf("puzzle_%s.log", nowStr))
