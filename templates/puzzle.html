@@ -9,7 +9,7 @@
 </head>
 <body onkeydown="controller.key(event)">
 	<div id="left">
-		<canvas id="puzzle" width=800 height=800 onmousedown="controller.click(event)" onmousemove="controller.move(event)" ondragstart="return false;">
+		<canvas id="puzzle" width=800 height=800 onmousedown="controller.click(event)" ontouchstart="controller.touch(event)" onmousemove="controller.move(event)" ontouchmove="controller.touchMove(event)" ondragstart="return false;">
 		</canvas>
 	</div>
 	<div id="right">

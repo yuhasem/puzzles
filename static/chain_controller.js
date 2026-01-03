@@ -5,6 +5,7 @@ class ChainController {
 		this.context = context;
 		resize(context);
 		this.mouseHold = false;
+		this.touchId = null;
 		this.mode = "controls";
 		this.chainIndex = -1;
 		this.controls = [];
@@ -93,6 +94,25 @@ class ChainController {
 		this.draw();
 	}
 	
+	// Touch dispatches to click, since the events on mobile screens can differ.
+	touch(ev) {
+		if (this.touchId !== null) {
+			return;
+		}
+		ev.preventDefault();
+		for (const touch of ev.changedTouches) {
+			this.touchId = touch.identifier;
+			this.click({
+				"target": ev.target,
+				"ctrlKey": false,
+				"shiftKey": false,
+				"clientX": touch.pageX,
+				"clientY": touch.pageY,
+			});
+			break;
+		}
+	}
+	
 	move(ev) {
 		if (!this.mouseHold) {
 			return;
@@ -110,11 +130,31 @@ class ChainController {
 		this.draw();
 	}
 	
+	// touchMove dispatches to move, since the events on mobile screens can differ.
+	touchMove(ev) {
+		for (const touch of ev.changedTouches) {
+			if (touch.indentifier !== touch.identifier) {
+				continue;
+			}
+			this.move({
+				"target": ev.target,
+				"clientX": touch.pageX,
+				"clientY": touch.pageY,
+			});
+		}
+	}
+	
 	unclick() {
 		this.mouseHold = false;
 		if (this.mode === "line") {
 			this.handler.endLine();
 		}
+	}
+	
+	// touchEnd dispatches to unclick, since the events on mobile screens can differ.
+	touchEnd(ev) {
+		this.touchId = null;
+		this.unclick();
 	}
 	
 	key(ev) {
@@ -214,13 +254,32 @@ class ChainController {
 function onLoad() {
 	controller = new ChainController(document.getElementById("puzzle").getContext("2d"));
 }
-window.addEventListener('load', (event) => { onLoad(); });
+
+// To make things look better on mobile (vertical) and so that the canvas is adjustable size.
+// TODO: resize Canvas dynamically for smaller resolutions?
+function arrangeWindow() {
+	if (window.innerHeight > window.innerWidth) {
+		document.getElementById("left").style.float = "none";
+	} else {
+		document.getElementById("left").style.float = "left";
+	}
+}
+
+window.addEventListener('load', (event) => {
+	arrangeWindow();
+	onLoad();
+});
+window.addEventListener('resize', (event) => {
+	arrangeWindow();
+	resize(document.getElementById("puzzle").getContext("2d"));
+});
 
 // This doesn't get cought by a handler on body if the unclick happens outside
 // a DOM element, and only having it on the canvas would mean we wouldn't
 // detect when a mouse up happens after dragging the cursor off the canvas.
 // This seems like the best solution to a good user experience.
 window.addEventListener("mouseup", (event) => { controller.unclick(); });
+window.addEventListener("touchend", (event) => { controller.unclick(); });
 
 function clickCoord(ev) {	
 	var bbox = ev.target.getBoundingClientRect();
