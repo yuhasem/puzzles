@@ -96,6 +96,9 @@ class ChainController {
 	
 	// Touch dispatches to click, since the events on mobile screens can differ.
 	touch(ev) {
+		console.log("touch");
+		console.log(ev);
+		console.log("last touch " + this.touchId);
 		if (this.touchId !== null) {
 			return;
 		}
@@ -111,6 +114,7 @@ class ChainController {
 			});
 			break;
 		}
+		console.log("now touch " + this.touchId);
 	}
 	
 	move(ev) {
@@ -132,10 +136,15 @@ class ChainController {
 	
 	// touchMove dispatches to move, since the events on mobile screens can differ.
 	touchMove(ev) {
+		console.log("touch move");
+		console.log(ev);
+		ev.preventDefault();
 		for (const touch of ev.changedTouches) {
-			if (touch.indentifier !== touch.identifier) {
+			console.log("touch move " + touch.identifier);
+			if (touch.identifier !== this.touchId) {
 				continue;
 			}
+			console.log("calling move");
 			this.move({
 				"target": ev.target,
 				"clientX": touch.pageX,
@@ -153,6 +162,9 @@ class ChainController {
 	
 	// touchEnd dispatches to unclick, since the events on mobile screens can differ.
 	touchEnd(ev) {
+		// Never fired.
+		console.log("touch end");
+		// ev.preventDefault();
 		this.touchId = null;
 		this.unclick();
 	}
@@ -279,7 +291,7 @@ window.addEventListener('resize', (event) => {
 // detect when a mouse up happens after dragging the cursor off the canvas.
 // This seems like the best solution to a good user experience.
 window.addEventListener("mouseup", (event) => { controller.unclick(); });
-window.addEventListener("touchend", (event) => { controller.unclick(); });
+window.addEventListener("touchend", (event) => { controller.touchEnd(event); });
 
 function clickCoord(ev) {	
 	var bbox = ev.target.getBoundingClientRect();
