@@ -214,6 +214,37 @@ export function changeColors(colors, color, cells, isCornerCoords) {
 	return newColors;
 }
 
+// Expects a double array of Sets.  Returns a triple array.
+export function colorsToSaveable(colors) {
+	var saveable = [];
+	for (var i = 0; i < colors.length; i++) {
+		var row = [];
+		for (var j = 0; j < colors[0].length; j++) {
+			var save = [];
+			colors[i][j].forEach((x) => {save.push(x);});
+			row.push(save);
+		}
+		saveable.push(row);
+	}
+	return saveable;
+}
+
+export function saveableToColors(saveable) {
+	var colors = [];
+	for (var i = 0; i < saveable.length; i++) {
+		var row = [];
+		for (var j = 0; j < saveable[0].length; j++) {
+			var color = new Set();
+			for (var k = 0; k < saveable[i][j].length; k++) {
+				color.add(saveable[i][j][k]);
+			}
+			row.push(color);
+		}
+		colors.push(row);
+	}
+	return colors;
+}
+
 export function newLines(rows, columns) {
 	var lines = [];
 	for (var i = 0; i < rows; i++) {

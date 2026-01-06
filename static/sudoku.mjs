@@ -2,7 +2,7 @@ import * as Draw from "./draw.mjs";
 import {
 	Coord, newColors, changeColors, pointToCell, coordToValue, valueToCoord,
 	copy, diagonallyAdjacent, newLines, changeLines, getClosestCorner, NORTH,
-	SOUTH, WEST, EAST
+	SOUTH, WEST, EAST, colorsToSaveable, saveableToColors
 } from "./grid.mjs";
 
 // Mode Enum
@@ -16,7 +16,7 @@ export class SudokuHandler {
 	// cages: ???, the cage clues
 	// arrows: Array<Array<Coord>>, the arrow clues with each arrow being an
 	//   Array of Coords from the bulb to the the tip.
-	constructor(solution, digits, cages, arrows) {
+	constructor(solution, digits, cages, arrows, loadedState) {
 		this.rows = solution.length;
 		this.columns = solution[0].length;
 		this.solution = solution;
@@ -30,11 +30,20 @@ export class SudokuHandler {
 		this.won = false;
 		this.selected = new Set();
 		this.lastLineCoord = null;
-		this.state = {
-			"digits": newDigits(this.rows, this.columns),
-			"lines": newLines(this.rows, this.columns),
-			"colors": newColors(this.rows, this.columns),
-		};
+		if (loadedState) {
+			this.state = JSON.parse(loadedState);
+			if (this.state) {
+				this.state.colors = saveableToColors(this.state.colors);
+				this.state.digits = saveableToDigits(this.state.digits);
+			}
+		}
+		if (!this.state) {
+			this.state = {
+				"digits": newDigits(this.rows, this.columns),
+				"lines": newLines(this.rows, this.columns),
+				"colors": newColors(this.rows, this.columns),
+			};
+		}
 		this.stateUndo = [];
 		this.stateRedo = [];
 	}
@@ -72,6 +81,14 @@ export class SudokuHandler {
 		}
 		this.stateUndo.push(this.state);
 		this.state = this.stateRedo.pop();
+	}
+	
+	saveState() {
+		return JSON.stringify({
+			"digits": digitsToSaveable(this.state.digits),
+			"lines": this.state.lines,
+			"colors": colorsToSaveable(this.state.colors),
+		});
 	}
 	
 	hasWon() { 
@@ -403,6 +420,49 @@ function copyDigits(digits) {
 		newDigits.push(row);
 	}
 	return newDigits;
+}
+
+// Replaces the sets of `inner` and `outer` with lists.
+function digitsToSaveable(digits) {
+	var saveable = [];
+	for (var i = 0; i < digits.length; i++) {
+		var row = [];
+		for (var j = 0; j < digits[0].length; j++) {
+			var save = {
+				"final": digits[i][j].final,
+				"inner": [],
+				"outer": [],
+			};
+			digits[i][j].inner.forEach((x) => {save.inner.push(x);});
+			digits[i][j].outer.forEach((x) => {save.outer.push(x);});
+			row.push(save);
+		}
+		saveable.push(row);
+	}
+	return saveable;
+}
+
+function saveableToDigits(saveable) {
+	var digits = [];
+	for (var i = 0; i < saveable.length; i++) {
+		var row = [];
+		for (var j = 0; j < saveable[0].length; j++) {
+			var digit = {
+				"final": saveable[i][j].final,
+				"inner": new Set(),
+				"outer": new Set(),
+			};
+			for (var k = 0; k < saveable[i][j].inner.length; k++) {
+				digit.inner.add(saveable[i][j].inner[k]);
+			}
+			for (var k = 0; k < saveable[i][j].outer.length; k++) {
+				digit.outer.add(saveable[i][j].outer[k]);
+			}
+			row.push(digit);
+		}
+		digits.push(row);
+	}
+	return digits;
 }
 
 // Returns Array<Coord> of cells to highlight as containing invalid input per

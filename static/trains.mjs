@@ -1,12 +1,13 @@
 import * as Draw from "./draw.mjs";
 import {
 	Coord, newColors, changeColors, pointToCell, coordToValue, valueToCoord,
-	copy, diagonallyAdjacent, changeDimension, pointToEdgeOrCell
+	copy, diagonallyAdjacent, changeDimension, pointToEdgeOrCell,
+	colorsToSaveable, saveableToColors
 } from "./grid.mjs";
 import { UNSET, BLOCK, TRACK } from "./trains_enum.mjs";
 
 export class TrainsHandler {
-	constructor(solution, clues) {
+	constructor(solution, clues, loadedState) {
 		// Just the inner 9x9 that the player has control over.
 		this.solution = solution;
 		// Any cell/edge marked TRACK/BLOCK is also locked, so the player can't
@@ -16,10 +17,18 @@ export class TrainsHandler {
 		this.columns = 2 + (clues.body[0].length - 1) / 2;
 		this.won = false;
 		this.selected = new Set();
-		this.state = {
-			"input": newTrainsInput(this.rows, this.columns),
-			"colors": newColors(this.rows, this.columns),
-		};
+		if (loadedState) {
+			this.state = JSON.parse(loadedState);
+			if (this.state) {
+				this.state.colors = saveableToColors(this.state.colors);
+			}
+		}
+		if (!this.state) {
+			this.state = {
+				"input": newTrainsInput(this.rows, this.columns),
+				"colors": newColors(this.rows, this.columns),
+			};
+		}
 		this.stateUndo = [];
 		this.stateRedo = [];
 		changeDimension(2*this.columns+1, 2*this.rows+1);
@@ -56,6 +65,13 @@ export class TrainsHandler {
 		}
 		this.stateUndo.push(this.state);
 		this.state = this.stateRedo.pop();
+	}
+	
+	saveState() {
+		return JSON.stringify({
+			"input": this.state.input,
+			"colors": colorsToSaveable(this.state.colors),
+		});
 	}
 	
 	// TODO: Hard to reproduce bug: Sometimes the state can be such that it

@@ -1,7 +1,7 @@
 import * as Draw from "./draw.mjs";
 import {
 	Coord, newColors, changeColors, pointToCell, coordToValue, valueToCoord,
-	copy, diagonallyAdjacent
+	copy, diagonallyAdjacent, colorsToSaveable, saveableToColors
 } from "./grid.mjs";
 
 export const HIDDEN = 0;
@@ -9,16 +9,24 @@ export const FLAGGED = 1;
 export const REVEALED = 2;
 
 export class MineHandler {
-	constructor(clues, specials) {
+	constructor(clues, specials, loadedState) {
 		this.selected = new Set();
 		this.clues = clues;
 		this.rows = clues.length;
 		this.columns = clues[0].length;
 		this.specials = specials;
-		this.state = {
-			"input": newInput(this.rows, this.columns),
-			"colors": newColors(this.rows, this.columns),
-		};
+		if (loadedState) {
+			this.state = JSON.parse(loadedState);
+			if (this.state) {
+				this.state.colors = saveableToColors(this.state.colors);
+			}
+		}
+		if (!this.state) {
+			this.state = {
+				"input": newInput(this.rows, this.columns),
+				"colors": newColors(this.rows, this.columns),
+			};
+		}
 		this.stateUndo = [];
 		this.stateRedo = [];
 		this.won = false;
@@ -59,6 +67,14 @@ export class MineHandler {
 		}
 		this.stateUndo.push(this.state);
 		this.state = this.stateRedo.pop();
+	}
+	
+	saveState() {
+		// TODO: this breaks the fact that colors are sets.
+		return JSON.stringify({
+			"input": this.state.input,
+			"colors": colorsToSaveable(this.state.colors),
+		});
 	}
 	
 	hasWon() {

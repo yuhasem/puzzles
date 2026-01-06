@@ -2,11 +2,12 @@ import * as Draw from "./draw.mjs";
 import {
 	Coord, newColors, changeColors, pointToCell, coordToValue, valueToCoord,
 	copy, NORTH, SOUTH, WEST, EAST, getClosestCorner, newLines, changeLines,
-	adjacentCellCoords, containsCoord, isValidCoord, adjacentCornerCoords
+	adjacentCellCoords, containsCoord, isValidCoord, adjacentCornerCoords,
+	colorsToSaveable, saveableToColors
 } from "./grid.mjs";
 
 export class GalaxyHandler {
-	constructor(centers, solution, clues) {
+	constructor(centers, solution, clues, loadedState) {
 		this.centers = centers;
 		this.solution = solution;
 		this.clues = clues;
@@ -17,9 +18,18 @@ export class GalaxyHandler {
 		this.won = false;
 		this.selected = new Set();
 		this.lastLineCoord = null;
-		this.state = {
-			"lines": newLines(this.rows, this.columns),
-			"colors": newColors(this.rows, this.columns),
+		if (loadedState) {
+			this.state = JSON.parse(loadedState);
+			if (this.state) {
+				this.state.colors = saveableToColors(this.state.colors);
+			}
+		}
+		// If there is no loaded state or it did not parse correctly set to a default.
+		if (!this.state) {
+			this.state = {
+				"lines": newLines(this.rows, this.columns),
+				"colors": newColors(this.rows, this.columns),
+			}
 		}
 		this.stateUndo = [];
 		this.stateRedo = [];
@@ -57,6 +67,13 @@ export class GalaxyHandler {
 		}
 		this.stateUndo.push(this.state);
 		this.state = this.stateRedo.pop();
+	}
+	
+	saveState() {
+		return JSON.stringify({
+			"lines": this.state.lines,
+			"colors": colorsToSaveable(this.state.colors),
+		});
 	}
 	
 	hasWon() {

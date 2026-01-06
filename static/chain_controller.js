@@ -7,9 +7,12 @@ class ChainController {
 		this.mouseHold = false;
 		this.touchId = null;
 		this.mode = "controls";
-		this.chainIndex = -1;
+		this.chainIndex = parseInt(window.localStorage.getItem("index"));
+		if (!this.chainIndex) {
+			this.chainIndex = 0;
+		}
 		this.controls = [];
-		this.next();
+		this.next(true);
 		this.changeMode({"target": {"id": "control"}});
 	}
 	
@@ -60,6 +63,7 @@ class ChainController {
 	
 	addColor(color) {
 		this.handler.addColor(color);
+		this.save();
 		this.draw()
 	}
 	
@@ -190,6 +194,7 @@ class ChainController {
 		if (this.handler.hasWon()) {
 			this.win();
 		}
+		this.save();
 		this.draw();
 	}
 	
@@ -202,42 +207,54 @@ class ChainController {
 		}
 	}
 	
-	next() {
+	next(tryLoad) {
 		document.getElementById("next").disabled = true;
 		var message = document.getElementById("message");
 		message.innerHTML = ""
 		message.style.display = "none";
-		this.chainIndex++;
+
+		var loadedState = "";
+		if (tryLoad) {
+			loadedState = window.localStorage.getItem("state");
+		} else {
+			// If we are not loading, then we are actually interested in
+			// advancing to the next link.
+			this.chainIndex++;
+		}
 		var link = chain[this.chainIndex];
 		document.getElementById("rules").innerHTML = link.rules;
+		var loadedState = "";
+		if (tryLoad) {
+			loadedState = window.localStorage.getItem("state");
+		}
 		switch(link.type) {
 		case "MINES":
 			import("./mines.mjs").then((mines) => {
-				this.handler = new mines.MineHandler(link.clues, link.specials);
+				this.handler = new mines.MineHandler(link.clues, link.specials, loadedState);
 				this.setNext();
 			});
 			break;
 		case "LIGHTS":
 			import("./lights.mjs").then((lights) => {
-				this.handler = new lights.LightHandler(link.walls, link.clues, link.solution);
+				this.handler = new lights.LightHandler(link.walls, link.clues, link.solution, loadedState);
 				this.setNext();
 			});
 			break;
 		case "GALAXIES":
 			import("./galaxies.mjs").then((glx) => {
-				this.handler = new glx.GalaxyHandler(link.clues, link.solution, link.specials);
+				this.handler = new glx.GalaxyHandler(link.clues, link.solution, link.specials, loadedState);
 				this.setNext();
 			});
 			break;
 		case "SUDOKU":
 			import("./sudoku.mjs").then((sudoku) => {
-				this.handler = new sudoku.SudokuHandler(link.solution, link.digits, link.cages, link.arrows);
+				this.handler = new sudoku.SudokuHandler(link.solution, link.digits, link.cages, link.arrows, loadedState);
 				this.setNext();
 			});
 			break;
 		case "TRAINS":
 			import("./trains.mjs").then((trains) => {
-				this.handler = new trains.TrainsHandler(link.solution, link.clues);
+				this.handler = new trains.TrainsHandler(link.solution, link.clues, loadedState);
 				this.setNext();
 			});
 			break;
@@ -260,6 +277,11 @@ class ChainController {
 				tab.style.display = "none";
 			}
 		}
+	}
+	
+	save() {
+		window.localStorage.setItem("index", this.chainIndex);
+		window.localStorage.setItem("state", this.handler.saveState());
 	}
 }
 

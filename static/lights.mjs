@@ -1,22 +1,30 @@
 import * as Draw from "./draw.mjs";
 import {
 	Coord, newColors, changeColors, pointToCell, coordToValue, valueToCoord,
-	copy, adjacent, isValidCoord
+	copy, adjacent, isValidCoord, colorsToSaveable, saveableToColors
 } from "./grid.mjs";
 import { EMPTY, BLOCK, LIGHT } from "./lights_enum.mjs";
 
 export class LightHandler {
-	constructor(walls, clues, solution) {
+	constructor(walls, clues, solution, loadedState) {
 		this.selected = new Set();
 		this.rows = walls.length;
 		this.columns = walls[0].length;
 		this.walls = walls;
 		this.clues = clues;
 		this.solution = solution;
-		this.state = {
-			"input": newInput(this.rows, this.columns),
-			"colors": newColors(this.rows, this.columns),
-		};
+		if (loadedState) {
+			this.state = JSON.parse(loadedState);
+			if (this.state) {
+				this.state.colors = saveableToColors(this.state.colors);
+			}
+		}
+		if (!this.state) {
+			this.state = {
+				"input": newInput(this.rows, this.columns),
+				"colors": newColors(this.rows, this.columns),
+			};
+		}
 		this.stateUndo = [];
 		this.stateRedo = [];
 		this.won = false;
@@ -37,6 +45,13 @@ export class LightHandler {
 		this.stateRedo = [];
 		this.stateUndo.push(this.state);
 		this.state = state;
+	}
+	
+	saveState() {
+		return JSON.stringify({
+			"input": this.state.input,
+			"colors": colorsToSaveable(this.state.colors),
+		});
 	}
 	
 	clearSelected() {
