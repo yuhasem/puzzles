@@ -1,4 +1,1 @@
-// Trains input enum
-export const UNSET = 0;
-export const BLOCK = 1;
-export const TRACK = 2;
+var N=0,K=1,O=2;export{N as UNSET,K as BLOCK,O as TRACK};

@@ -1,4 +1,1 @@
-// State Enum for lights user celll input.
-export const EMPTY = 0;
-export const BLOCK = 1;
-export const LIGHT = 2;
+var J=0,K=1,L=2;export{J as EMPTY,K as BLOCK,L as LIGHT};
