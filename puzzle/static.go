@@ -5,13 +5,22 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 )
 
-type staticHandler struct{}
+type staticHandler struct {
+	pathBase string
+}
 
-func NewStaticHandler() staticHandler {
-	return staticHandler{}
+func NewStaticHandler(raw bool) staticHandler {
+	p := "/static/"
+	if raw {
+		p = "/raw/"
+	}
+	return staticHandler{
+		pathBase: p,
+	}
 }
 
 func (h staticHandler) ServeHTTP(out http.ResponseWriter, in *http.Request) {
@@ -24,7 +33,7 @@ func (h staticHandler) ServeHTTP(out http.ResponseWriter, in *http.Request) {
 		out.WriteHeader(500)
 		return
 	}
-	fullPath := cwd + in.URL.Path
+	fullPath := path.Join(cwd, strings.Replace(in.URL.Path, "/static/", h.pathBase, 1))
 	data, err := os.ReadFile(fullPath)
 	if err != nil {
 		slog.Warn(fmt.Sprintf("retrieving file: %v\n", err))

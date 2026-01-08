@@ -15,6 +15,7 @@ import (
 )
 
 var host = flag.String("host", "localhost", "ip address to bind on")
+var raw = flag.Bool("raw", false, "Whether to server raw or minified versions of the javascript")
 
 func main() {
 	flag.Parse()
@@ -49,7 +50,7 @@ func main() {
 		slog.Error(fmt.Sprintf("setting up main port: %s", err))
 		return
 	}
-	http.Handle("/static/", puzzle.NewStaticHandler())
+	http.Handle("/static/", puzzle.NewStaticHandler(*raw))
 	p, err := puzzle.NewPuzzleHandler()
 	if err != nil {
 		slog.Error(fmt.Sprintf("creating puzzle handler: %s", err))
