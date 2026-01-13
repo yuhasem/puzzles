@@ -164,7 +164,7 @@ export class GalaxyHandler {
 	instructions() {
 		return `
 		<p>
-		Select the "Line" tab.  Click and drag along grid lines to turn them on/off.
+		Select the "Line" tab.  Click and drag along grid lines to turn them on/off.  When a region is a valid galaxy, it becomes shaded grey.
 		</p>
 		`;
 	}
