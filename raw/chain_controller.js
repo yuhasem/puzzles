@@ -128,6 +128,7 @@ class ChainController {
 		var c = clickCoord(ev);
 		if (this.mode === "line") {
 			this.handler.recordLine(c.x, c.y);
+			this.save();
 			// Only needed for galaxies.  Can we avoid this check elsewhere?
 			if (this.handler.hasWon()) {
 				this.win();
@@ -265,6 +266,7 @@ class ChainController {
 		// TODO: build in a way for controllers to disable colors if they can't handle them.
 		this.setControls(this.handler.controls(), true, this.handler.allowsLines());
 		document.getElementById("instructions").innerHTML = this.handler.instructions();
+		this.save();
 		this.draw();
 	}
 	
