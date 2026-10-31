@@ -31,7 +31,7 @@ export function resize(context) {
 	vertMargin = (height - gridHeight*cellSize) / 2;
 }
 
-export function changeDimension(width, height) {
+export function changeDimension(height, width) {
 	gridWidth = width;
 	gridHeight = height;
 }

@@ -171,7 +171,7 @@ export function drawGrid(context, rows, columns, rowBegin, rowEnd, columnBegin, 
 	
 	// Vertical lines
 	context.beginPath();
-	for (var i = rowBegin; i < rowEnd+1; i++) {
+	for (var i = columnBegin; i < columnEnd+1; i++) {
 		var at = grid.horzMargin + i*grid.size;
 		context.moveTo(at, grid.vertMargin + rowBegin*grid.size);
 		context.lineTo(at, grid.height - grid.vertMargin - grid.size*(rows-rowEnd));
@@ -180,7 +180,7 @@ export function drawGrid(context, rows, columns, rowBegin, rowEnd, columnBegin, 
 	
 	// Horizontal lines
 	context.beginPath();
-	for (var i = columnBegin; i < columnEnd+1; i++) {
+	for (var i = rowBegin; i < rowEnd+1; i++) {
 		var at = grid.vertMargin + i*grid.size;
 		context.moveTo(grid.horzMargin + columnBegin*grid.size, at);
 		context.lineTo(grid.width - grid.horzMargin - grid.size*(columns-columnEnd), at);
