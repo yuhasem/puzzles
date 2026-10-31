@@ -31,13 +31,18 @@ export class SudokuHandler {
 		this.selected = new Set();
 		this.lastLineCoord = null;
 		if (loadedState) {
-			this.state = JSON.parse(loadedState);
-			if (this.state) {
-				this.state.colors = saveableToColors(this.state.colors);
-				this.state.digits = saveableToDigits(this.state.digits);
+			this.state = {};
+			if (loadedState.digits && loadedState.digits.length > 0) {
+				this.state.digits = saveableToDigits(loadedState.digits);
+			}
+			if (loadedState.lines && loadedState.lines.length > 0) {
+				this.state.lines = loadedState.lines;
+			}
+			if (loadedState.colors && loadedState.colors.length > 0) {
+				this.state.colors = saveableToColors(loadedState.colors);
 			}
 		}
-		if (!this.state) {
+		if (!this.state || !this.state.digits || this.state.digits.length == 0) {
 			this.state = {
 				"digits": newDigits(this.rows, this.columns),
 				"lines": newLines(this.rows, this.columns),
@@ -84,11 +89,11 @@ export class SudokuHandler {
 	}
 	
 	saveState() {
-		return JSON.stringify({
+		return {
 			"digits": digitsToSaveable(this.state.digits),
 			"lines": this.state.lines,
 			"colors": colorsToSaveable(this.state.colors),
-		});
+		};
 	}
 	
 	hasWon() { 

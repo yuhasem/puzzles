@@ -1,7 +1,8 @@
 import * as Draw from "./draw.mjs";
 import {
 	Coord, newColors, changeColors, pointToCell, coordToValue, valueToCoord,
-	copy, diagonallyAdjacent, colorsToSaveable, saveableToColors
+	copy, diagonallyAdjacent, colorsToSaveable, saveableToColors,
+	changeDimension, resize
 } from "./grid.mjs";
 
 export const HIDDEN = 0;
@@ -14,14 +15,19 @@ export class MineHandler {
 		this.clues = clues;
 		this.rows = clues.length;
 		this.columns = clues[0].length;
-		this.specials = specials;
+		changeDimension(this.rows, this.columns);
+		this.givenClears = specials.givenClears;
+		this.givenBombs = specials.givenBombs;
 		if (loadedState) {
-			this.state = JSON.parse(loadedState);
-			if (this.state) {
-				this.state.colors = saveableToColors(this.state.colors);
+			this.state = {};
+			if (loadedState.inputs && loadedState.inputs.length > 0) {
+				this.state.input = loadedState.inputs;
+			}
+			if (loadedState.colors && loadedState.colors.length > 0) {
+				this.state.colors = saveableToColors(loadedState.colors);
 			}
 		}
-		if (!this.state) {
+		if (!this.state || !this.state.input || this.state.input.length == 0) {
 			this.state = {
 				"input": newInput(this.rows, this.columns),
 				"colors": newColors(this.rows, this.columns),
@@ -70,11 +76,10 @@ export class MineHandler {
 	}
 	
 	saveState() {
-		// TODO: this breaks the fact that colors are sets.
-		return JSON.stringify({
-			"input": this.state.input,
+		return {
+			"inputs": this.state.input,
 			"colors": colorsToSaveable(this.state.colors),
-		});
+		};
 	}
 	
 	hasWon() {
@@ -93,10 +98,12 @@ export class MineHandler {
 	}
 	
 	draw(context, highlightErrors) {
+		resize(context);
 		context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 		Draw.drawMineClues(context, this.clues, this.failedCoord);
 		Draw.drawFog(context, this.state.input);
-		Draw.drawSpecialClues(context, this.specials, this.state.input);
+		Draw.drawMinesEmpty(context, this.givenClears, this.state.input);
+		Draw.drawMinesGiven(context, this.givenBombs, this.state.input);
 		Draw.drawMineInput(context, this.state.input);
 		if (highlightErrors) {
 			var errors = [];

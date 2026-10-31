@@ -21,9 +21,14 @@ export function resize(context) {
 	height = context.canvas.height;
 	width = context.canvas.width;
 	// TODO: how do I get both the context and the grid size here?
-	cellSize = (Math.min(height, width) - 2 * canvMargin) / 11;
-	horzMargin = (width - 11*cellSize) / 2;
-	vertMargin = (height - 11*cellSize) / 2;
+	if (height/gridHeight < width/gridWidth) {
+		cellSize = (height - 2 * canvMargin) / gridHeight;
+	} else {
+		cellSize = (width - 2 * canvMargin) / gridWidth;
+	}
+	// cellSize = (Math.min(height, width) - 2 * canvMargin) / 11;
+	horzMargin = (width - gridWidth*cellSize) / 2;
+	vertMargin = (height - gridHeight*cellSize) / 2;
 }
 
 export function changeDimension(width, height) {

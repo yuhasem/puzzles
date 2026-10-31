@@ -213,7 +213,7 @@ var chain = [
 	{
 		"type": "MINES",
 		"clues": mineClues,
-		"specials": [C(5,5)],
+		"specials": {"givenClears": [C(5,5)]},
 		"rules": `
 		<h2><center>Link 1/5: Mines</center></h2>
 		<p>

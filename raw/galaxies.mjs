@@ -19,13 +19,16 @@ export class GalaxyHandler {
 		this.selected = new Set();
 		this.lastLineCoord = null;
 		if (loadedState) {
-			this.state = JSON.parse(loadedState);
-			if (this.state) {
-				this.state.colors = saveableToColors(this.state.colors);
+			this.state = {};
+			if (loadedState.lines && loadedState.lines.length > 0) {
+				this.state.lines = loadedState.lines;
+			}
+			if (loadedState.colors && loadedState.colors.length > 0) {
+				this.state.colors = saveableToColors(loadedState.colors);
 			}
 		}
 		// If there is no loaded state or it did not parse correctly set to a default.
-		if (!this.state) {
+		if (!this.state || !this.state.lines || this.state.lines.length == 0) {
 			this.state = {
 				"lines": newLines(this.rows, this.columns),
 				"colors": newColors(this.rows, this.columns),
@@ -70,10 +73,10 @@ export class GalaxyHandler {
 	}
 	
 	saveState() {
-		return JSON.stringify({
+		return {
 			"lines": this.state.lines,
 			"colors": colorsToSaveable(this.state.colors),
-		});
+		};
 	}
 	
 	hasWon() {

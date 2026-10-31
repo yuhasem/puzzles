@@ -388,11 +388,12 @@ export function drawFog(context, fog) {
 	}
 }
 
-// Clues a list of Coord indicating where to draw an indication that the cell
-// is clear for Mines puzzle.
-export function drawSpecialClues(context, clues, input) {
+// `empty` is a list of Coord indicating where to draw an indication that the
+// cell is clear for a Mines puzzle.
+export function drawMinesEmpty(context, empty, input) {
+	empty = empty || [];
 	var grid = getGrid(context, input.length, input[0].length);
-	for (var coord of clues) {
+	for (var coord of empty) {
 		if (input[coord.row][coord.col] == 2) {
 			continue;
 		}
@@ -404,8 +405,30 @@ export function drawSpecialClues(context, clues, input) {
 		context.arc(center.x, center.y, rad, 0, 2 * Math.PI, false);
 		context.stroke();
 	}
-	
 }
+
+// `given` is a list of Coord indicating where to draw an indication that the
+// cell is a given mine for a Mines puzzle.
+export function drawMinesGiven(context, given, input) {
+	given = given || [];
+	var grid = getGrid(context, input.length, input[0].length);
+	for (var coord of given) {
+		// Don't draw under a user marked cell.
+		if (input[coord.row][coord.col] != 0) {
+			continue;
+		}
+		var corner = cellCorner(coord, grid);
+		context.strokeStyle = "#CC2222";
+		context.lineWidth = 9;
+		context.lineCap = "round";
+		context.beginPath();
+		context.moveTo(corner.x + 0.2*grid.size, corner.y + 0.2*grid.size);
+		context.lineTo(corner.x + 0.8*grid.size, corner.y + 0.8*grid.size);
+		context.moveTo(corner.x + 0.2*grid.size, corner.y + 0.8*grid.size);
+		context.lineTo(corner.x + 0.8*grid.size, corner.y + 0.2*grid.size);
+		context.stroke();
+	}
+}	
 
 // Draws the flags for a Mines puzzle.
 export function drawMineInput(context, input) {

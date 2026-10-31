@@ -6,14 +6,39 @@ class ChainController {
 		resize(context);
 		this.mouseHold = false;
 		this.touchId = null;
-		this.mode = "controls";
-		this.chainIndex = parseInt(window.localStorage.getItem("index"));
-		if (!this.chainIndex) {
-			this.chainIndex = 0;
-		}
-		this.controls = [];
-		this.next(true);
+		this.mode = "control";
+		this.db;
+		const openRequest = window.indexedDB.open("saves", 2);
+		openRequest.addEventListener("error", () => this.handleDbError());
+		openRequest.addEventListener("success", () => this.dbLoad(openRequest));
+		openRequest.addEventListener("upgradeneeded", (e) => {
+			this.db = e.target.result;
+			const saves = this.db.createObjectStore("saves_os");
+			saves.createIndex("index", "index", {unique: false});
+			saves.createIndex("inputs", "inputs", {unique: false});
+			saves.createIndex("colors", "colors", {unique: false});
+			saves.createIndex("digits", "digits", {unique: false});
+			saves.createIndex("lines", "lines", {unique: false});
+		});
+		// this.chainIndex = parseInt(window.localStorage.getItem("index"));
+		// if (!this.chainIndex) {
+			// this.chainIndex = 0;
+		// }
+		this.controls = [];  // TODO: Are controls setup in next?
+		// this.next(true);
 		this.changeMode({"target": {"id": "control"}});
+	}
+	
+	handleDbError() {
+		console.log("No indexed db, saving and loading will not work.");
+		this.chainIndex = -1;
+		this.next();
+	}
+	
+	dbLoad(openRequest) {
+		this.db = openRequest.result;
+		// TODO: we should have a "ready" flag on the object so that controls don't get hit and break something before we're ready (made sure we've loaded the chain and handler logic).
+		this.next(true)
 	}
 	
 	// Controls expects an Array of objects with "text", "class", and "method"
@@ -201,61 +226,80 @@ class ChainController {
 	
 	win() {
 		var message = document.getElementById("message");
-		message.innerHTML = "Congratulations, you won!"
+		if (chain[this.chainIndex].message) {
+			message.innerHTML = chain[this.chainIndex].message;
+		} else {
+			message.innerHTML = "Congratulations, you won!"
+		}
 		message.style.display = "";
 		if (this.chainIndex < chain.length - 1) {
 			document.getElementById("next").disabled = false;
 		}
 	}
 	
+	// tryLoad is given when setting up a handler from a page load.  This is
+	// so that we can load a save during that setup, without trying to load a
+	// save when advancing a link, which would probably populate the wrong
+	// stuff and break things.
 	next(tryLoad) {
 		document.getElementById("next").disabled = true;
 		var message = document.getElementById("message");
 		message.innerHTML = ""
 		message.style.display = "none";
 
-		var loadedState = "";
 		if (tryLoad) {
-			loadedState = window.localStorage.getItem("state");
+			const os = this.db.transaction("saves_os").objectStore("saves_os");
+			const req = os.get(document.URL);
+			req.addEventListener("success", (e) => this.nextWithState(req.result));
+			req.addEventListener("error", (e) => {
+				console.log(e);
+				this.nextWithState({});
+			});
 		} else {
 			// If we are not loading, then we are actually interested in
 			// advancing to the next link.
 			this.chainIndex++;
+			this.nextWithState({});
+		}
+	}
+	
+	nextWithState(state) {
+		if (state && state.index) {
+			this.chainIndex = state.index;
+		}
+		if (!this.chainIndex) {
+			this.chainIndex = 0;
 		}
 		var link = chain[this.chainIndex];
 		document.getElementById("rules").innerHTML = link.rules;
-		var loadedState = "";
-		if (tryLoad) {
-			loadedState = window.localStorage.getItem("state");
-		}
 		switch(link.type) {
 		case "MINES":
 			import("./mines.mjs").then((mines) => {
-				this.handler = new mines.MineHandler(link.clues, link.specials, loadedState);
+				this.handler = new mines.MineHandler(link.clues, link.specials, state);
 				this.setNext();
 			});
 			break;
 		case "LIGHTS":
 			import("./lights.mjs").then((lights) => {
-				this.handler = new lights.LightHandler(link.walls, link.clues, link.solution, loadedState);
+				this.handler = new lights.LightHandler(link.walls, link.clues, link.solution, state);
 				this.setNext();
 			});
 			break;
 		case "GALAXIES":
 			import("./galaxies.mjs").then((glx) => {
-				this.handler = new glx.GalaxyHandler(link.clues, link.solution, link.specials, loadedState);
+				this.handler = new glx.GalaxyHandler(link.clues, link.solution, link.specials, state);
 				this.setNext();
 			});
 			break;
 		case "SUDOKU":
 			import("./sudoku.mjs").then((sudoku) => {
-				this.handler = new sudoku.SudokuHandler(link.solution, link.digits, link.cages, link.arrows, loadedState);
+				this.handler = new sudoku.SudokuHandler(link.solution, link.digits, link.cages, link.arrows, state);
 				this.setNext();
 			});
 			break;
 		case "TRAINS":
 			import("./trains.mjs").then((trains) => {
-				this.handler = new trains.TrainsHandler(link.solution, link.clues, loadedState);
+				this.handler = new trains.TrainsHandler(link.solution, link.clues, state);
 				this.setNext();
 			});
 			break;
@@ -282,8 +326,28 @@ class ChainController {
 	}
 	
 	save() {
-		window.localStorage.setItem("index", this.chainIndex);
-		window.localStorage.setItem("state", this.handler.saveState());
+		if (!this.db) {
+			return;
+		}
+		let toSave = this.handler.saveState();
+		toSave.index = this.chainIndex;
+		if (!toSave.inputs) {
+			toSave.inputs = [];
+		}
+		if (!toSave.colors) {
+			toSave.colors = [];
+		}
+		if (!toSave.digits) {
+			toSave.digits = [];
+		}
+		if (!toSave.lines) {
+			toSave.lines = [];
+		}
+		const os = this.db.transaction(["saves_os"], "readwrite").objectStore("saves_os");
+		const req = os.put(toSave, document.URL);
+		req.addEventListener("error", () => console.log("error saving to db"));
+		// window.localStorage.setItem("index", this.chainIndex);
+		// window.localStorage.setItem("state", this.handler.saveState());
 	}
 }
 

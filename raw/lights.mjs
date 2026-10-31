@@ -14,12 +14,15 @@ export class LightHandler {
 		this.clues = clues;
 		this.solution = solution;
 		if (loadedState) {
-			this.state = JSON.parse(loadedState);
-			if (this.state) {
-				this.state.colors = saveableToColors(this.state.colors);
+			this.state = {};
+			if (loadedState.inputs && loadedState.inputs.length > 0) {
+				this.state.input = loadedState.inputs;
+			}
+			if (loadedState.colors && loadedState.colors.length > 0) {
+				this.state.colors = saveableToColors(loadedState.colors);
 			}
 		}
-		if (!this.state) {
+		if (!this.state || !this.state.input || this.state.input.length == 0) {
 			this.state = {
 				"input": newInput(this.rows, this.columns),
 				"colors": newColors(this.rows, this.columns),
@@ -48,10 +51,10 @@ export class LightHandler {
 	}
 	
 	saveState() {
-		return JSON.stringify({
-			"input": this.state.input,
+		return {
+			"inputs": this.state.input,
 			"colors": colorsToSaveable(this.state.colors),
-		});
+		};
 	}
 	
 	clearSelected() {
