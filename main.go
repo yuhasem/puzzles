@@ -15,6 +15,7 @@ import (
 )
 
 var host = flag.String("host", "localhost", "ip address to bind on")
+var port = flag.Int("port", 3722, "port to bind on")
 var raw = flag.Bool("raw", false, "Whether to server raw or minified versions of the javascript")
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 	monServer := http.Server{
 		Handler: &monMux,
 	}
-	monL, err := net.Listen("tcp", fmt.Sprintf("%s:2113", *host))
+	monL, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *host, *port))
 	if err != nil {
 		slog.Error(fmt.Sprintf("setting up monitoring port: %s", err))
 	}
