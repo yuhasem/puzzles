@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"text/template"
@@ -61,6 +62,13 @@ func (h *puzzleHandler) ServeHTTP(out http.ResponseWriter, in *http.Request) {
 			slog.Warn(fmt.Sprintf("%s\n", err), "in-url", in.URL)
 			return
 		}
+	case "mines":
+		var err error
+		code, err = h.handleMines(paths[3:], out)
+		if err != nil {
+			slog.Warn(fmt.Sprintf("%s\n", err), "in-url", in.URL)
+			return
+		}
 	default:
 		slog.Debug(fmt.Sprintf("unown second path %s", paths[1]), "in-url", in.URL)
 		code = 404
@@ -76,17 +84,49 @@ func (h *puzzleHandler) handleChain(paths []string, out http.ResponseWriter) (in
 	}
 	switch paths[0] {
 	case "1":
-		data, err := os.ReadFile(h.cwd + "/static/chain/1.js")
-		if err != nil {
-			return 500, fmt.Errorf("Could not read chain data: %w", err)
-		}
-		d := Data{Chain: fmt.Sprintf("%s", data)}
-		err = h.t.ExecuteTemplate(out, "puzzle.html", d)
-		if err != nil {
-			return 500, fmt.Errorf("Could not execute template: %w", err)
-		}
+		return h.puzzleFromFile("/static/chain/1.js", out)
+	case "2":
+		// TODO: move to static, or least make it consistent between the 2.
+		return h.puzzleFromFile("/raw/chain/2.js", out)
+	case "3":
+		return h.puzzleFromFile("/raw/chain/3.js", out)
 	default:
 		return 404, fmt.Errorf("Not a puzzle: %s", paths[0])
+	}
+	return 200, nil
+}
+
+func (h *puzzleHandler) handleMines(paths []string, out http.ResponseWriter) (int, error) {
+	if len(paths) != 1 {
+		return 404, fmt.Errorf("Unexpected path structure %v", paths)
+	}
+	switch paths[0] {
+	case "1":
+		return h.puzzleFromFile("/raw/mines/1.js", out)
+	case "2":
+		return h.puzzleFromFile("/raw/mines/2.js", out)
+	case "3":
+		return h.puzzleFromFile("/raw/mines/3.js", out)
+	case "4":
+		return h.puzzleFromFile("/raw/mines/4.js", out)
+	case "5":
+		return h.puzzleFromFile("/raw/mines/5.js", out)
+	case "6":
+		return h.puzzleFromFile("/raw/mines/6.js", out)
+	}
+
+	return 200, nil
+}
+
+func (h *puzzleHandler) puzzleFromFile(file string, out http.ResponseWriter) (int, error) {
+	data, err := os.ReadFile(path.Join(h.cwd, file))
+	if err != nil {
+		return 500, fmt.Errorf("reading puzzle data: %w", err)
+	}
+	d := Data{Chain: fmt.Sprintf("%s", data)}
+	err = h.t.ExecuteTemplate(out, "puzzle.html", d)
+	if err != nil {
+		return 500, fmt.Errorf("assigning chain to template: %w", err)
 	}
 	return 200, nil
 }
