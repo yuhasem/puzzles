@@ -102,17 +102,17 @@ func (h *puzzleHandler) handleMines(paths []string, out http.ResponseWriter) (in
 	}
 	switch paths[0] {
 	case "1":
-		return h.puzzleFromFile("/raw/mines/1.js", out)
+		return h.puzzleFromFile("/static/mines/1.js", out)
 	case "2":
-		return h.puzzleFromFile("/raw/mines/2.js", out)
+		return h.puzzleFromFile("/static/mines/2.js", out)
 	case "3":
-		return h.puzzleFromFile("/raw/mines/3.js", out)
+		return h.puzzleFromFile("/static/mines/3.js", out)
 	case "4":
-		return h.puzzleFromFile("/raw/mines/4.js", out)
+		return h.puzzleFromFile("/static/mines/4.js", out)
 	case "5":
-		return h.puzzleFromFile("/raw/mines/5.js", out)
+		return h.puzzleFromFile("/static/mines/5.js", out)
 	case "6":
-		return h.puzzleFromFile("/raw/mines/6.js", out)
+		return h.puzzleFromFile("/static/mines/6.js", out)
 	}
 
 	return 200, nil

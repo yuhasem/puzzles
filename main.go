@@ -36,7 +36,7 @@ func main() {
 	monServer := http.Server{
 		Handler: &monMux,
 	}
-	monL, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *host, *port))
+	monL, err := net.Listen("tcp", fmt.Sprintf("%s:2113", *host))
 	if err != nil {
 		slog.Error(fmt.Sprintf("setting up monitoring port: %s", err))
 	}
@@ -46,7 +46,7 @@ func main() {
 
 	// Set up main server.
 	server := http.Server{}
-	l, err := net.Listen("tcp", fmt.Sprintf("%s:3722", *host))
+	l, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *host, *port))
 	if err != nil {
 		slog.Error(fmt.Sprintf("setting up main port: %s", err))
 		return
